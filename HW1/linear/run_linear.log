@@ -1,0 +1,358 @@
+loading the dataset
+Split into Train and Val
+Scaling all to [0, 1]
+
+===== L2 Regularization =====
+
+--- lambda=0.0001 ---
+[l2] epoch=   1 train_obj=7.949670 val_mse=9.947977
+[l2] epoch=1000 train_obj=1.893366 val_mse=2.434904
+[l2] epoch=2000 train_obj=0.506917 val_mse=0.651729
+[l2] epoch=3000 train_obj=0.078015 val_mse=0.101173
+[l2] epoch=4000 train_obj=0.007636 val_mse=0.010426
+[l2] epoch=5000 train_obj=0.003372 val_mse=0.005352
+[l2] epoch=6000 train_obj=0.003192 val_mse=0.004765
+[l2] epoch=7000 train_obj=0.003125 val_mse=0.003991
+[l2] epoch=8000 train_obj=0.003082 val_mse=0.003403
+[l2] epoch=9000 train_obj=0.003066 val_mse=0.003117
+[l2] epoch=10000 train_obj=0.003063 val_mse=0.003031
+bias: -0.4821588397026062
+weights:
+  x1      : -1.994837
+  x2      : -0.003373
+  x3      : +0.001358
+  cos(x1) : -0.011878
+  cos(x2) : +0.496223
+  cos(x3) : -0.007588
+  x1^2    : -0.005801
+  x2^2    : +0.000645
+  x3^2    : +0.198208
+
+--- lambda=0.001 ---
+[l2] epoch=   1 train_obj=14.666347 val_mse=14.410431
+[l2] epoch=1000 train_obj=1.923524 val_mse=2.415580
+[l2] epoch=2000 train_obj=0.526679 val_mse=0.677430
+[l2] epoch=3000 train_obj=0.093021 val_mse=0.117548
+[l2] epoch=4000 train_obj=0.018961 val_mse=0.020026
+[l2] epoch=5000 train_obj=0.010868 val_mse=0.011631
+[l2] epoch=6000 train_obj=0.008355 val_mse=0.010205
+[l2] epoch=7000 train_obj=0.007542 val_mse=0.008638
+[l2] epoch=8000 train_obj=0.007196 val_mse=0.006187
+[l2] epoch=9000 train_obj=0.006989 val_mse=0.004186
+[l2] epoch=10000 train_obj=0.006911 val_mse=0.003284
+bias: -0.44466081261634827
+weights:
+  x1      : -1.992990
+  x2      : -0.003643
+  x3      : +0.001368
+  cos(x1) : -0.044502
+  cos(x2) : +0.495266
+  cos(x3) : -0.015229
+  x1^2    : -0.016956
+  x2^2    : +0.000683
+  x3^2    : +0.196205
+
+--- lambda=0.01 ---
+[l2] epoch=   1 train_obj=19.798784 val_mse=16.121542
+[l2] epoch=1000 train_obj=1.000111 val_mse=1.225748
+[l2] epoch=2000 train_obj=0.213444 val_mse=0.237444
+[l2] epoch=3000 train_obj=0.061537 val_mse=0.028913
+[l2] epoch=4000 train_obj=0.047602 val_mse=0.008833
+[l2] epoch=5000 train_obj=0.045786 val_mse=0.007071
+[l2] epoch=6000 train_obj=0.045314 val_mse=0.006013
+[l2] epoch=7000 train_obj=0.045027 val_mse=0.004846
+[l2] epoch=8000 train_obj=0.044863 val_mse=0.004077
+[l2] epoch=9000 train_obj=0.044813 val_mse=0.003773
+[l2] epoch=10000 train_obj=0.044808 val_mse=0.003702
+bias: -0.4784255027770996
+weights:
+  x1      : -1.973524
+  x2      : -0.005535
+  x3      : +0.001011
+  cos(x1) : +0.000435
+  cos(x2) : +0.485998
+  cos(x3) : -0.024921
+  x1^2    : -0.000831
+  x2^2    : +0.000952
+  x3^2    : +0.193635
+
+--- lambda=0.1 ---
+[l2] epoch=   1 train_obj=13.178736 val_mse=13.943281
+[l2] epoch=1000 train_obj=0.905127 val_mse=0.986578
+[l2] epoch=2000 train_obj=0.433461 val_mse=0.200618
+[l2] epoch=3000 train_obj=0.388686 val_mse=0.068037
+[l2] epoch=4000 train_obj=0.386359 val_mse=0.054446
+[l2] epoch=5000 train_obj=0.385937 val_mse=0.053563
+[l2] epoch=6000 train_obj=0.385903 val_mse=0.053445
+[l2] epoch=7000 train_obj=0.385902 val_mse=0.053432
+[l2] epoch=8000 train_obj=0.385902 val_mse=0.053431
+[l2] epoch=9000 train_obj=0.385902 val_mse=0.053431
+[l2] epoch=10000 train_obj=0.385902 val_mse=0.053431
+bias: -0.4487079679965973
+weights:
+  x1      : -1.800662
+  x2      : -0.020327
+  x3      : -0.002205
+  cos(x1) : +0.005957
+  cos(x2) : +0.409949
+  cos(x3) : -0.055350
+  x1^2    : +0.008727
+  x2^2    : +0.003038
+  x3^2    : +0.183639
+
+--- lambda=1 ---
+[l2] epoch=   1 train_obj=10.759194 val_mse=8.900197
+[l2] epoch=1000 train_obj=2.263214 val_mse=2.286001
+[l2] epoch=2000 train_obj=2.038684 val_mse=1.450868
+[l2] epoch=3000 train_obj=2.035585 val_mse=1.357760
+[l2] epoch=4000 train_obj=2.035583 val_mse=1.355789
+[l2] epoch=5000 train_obj=2.035583 val_mse=1.355786
+[l2] epoch=6000 train_obj=2.035583 val_mse=1.355784
+[l2] epoch=7000 train_obj=2.035583 val_mse=1.355782
+[l2] epoch=8000 train_obj=2.035583 val_mse=1.355782
+[l2] epoch=9000 train_obj=2.035583 val_mse=1.355781
+[l2] epoch=10000 train_obj=2.035583 val_mse=1.355781
+bias: -0.37312135100364685
+weights:
+  x1      : -0.960987
+  x2      : -0.046343
+  x3      : -0.014734
+  cos(x1) : -0.004965
+  cos(x2) : +0.167743
+  cos(x3) : -0.051897
+  x1^2    : +0.030123
+  x2^2    : +0.006907
+  x3^2    : +0.161714
+
+--- lambda=5 ---
+[l2] epoch=   1 train_obj=13.490467 val_mse=12.682684
+[l2] epoch=1000 train_obj=3.357971 val_mse=3.564687
+[l2] epoch=2000 train_obj=3.357342 val_mse=3.561649
+[l2] epoch=3000 train_obj=3.357342 val_mse=3.561654
+[l2] epoch=4000 train_obj=3.357342 val_mse=3.561653
+[l2] epoch=5000 train_obj=3.357342 val_mse=3.561653
+[l2] epoch=6000 train_obj=3.357342 val_mse=3.561653
+[l2] epoch=7000 train_obj=3.357342 val_mse=3.561653
+[l2] epoch=8000 train_obj=3.357342 val_mse=3.561653
+[l2] epoch=9000 train_obj=3.357342 val_mse=3.561653
+[l2] epoch=10000 train_obj=3.357342 val_mse=3.561653
+bias: -0.21489089727401733
+weights:
+  x1      : -0.313064
+  x2      : -0.023882
+  x3      : -0.012951
+  cos(x1) : -0.005292
+  cos(x2) : +0.049070
+  cos(x3) : -0.031503
+  x1^2    : +0.020632
+  x2^2    : +0.003404
+  x3^2    : +0.109789
+
+===== L1 Regularization =====
+
+--- lambda=0.0001 ---
+[l1] epoch=   1 train_obj=3.964907 val_mse=5.390296
+[l1] epoch=1000 train_obj=0.645476 val_mse=0.831174
+[l1] epoch=2000 train_obj=0.082115 val_mse=0.109831
+[l1] epoch=3000 train_obj=0.007286 val_mse=0.012727
+[l1] epoch=4000 train_obj=0.003801 val_mse=0.007522
+[l1] epoch=5000 train_obj=0.003196 val_mse=0.005497
+[l1] epoch=6000 train_obj=0.002975 val_mse=0.003853
+[l1] epoch=7000 train_obj=0.002915 val_mse=0.003140
+[l1] epoch=8000 train_obj=0.002908 val_mse=0.002995
+[l1] epoch=9000 train_obj=0.002908 val_mse=0.002984
+[l1] epoch=10000 train_obj=0.002908 val_mse=0.002989
+bias: -0.49492067098617554
+weights:
+  x1      : -1.994957
+  x2      : -0.003300
+  x3      : +0.001306
+  cos(x1) : -0.000018
+  cos(x2) : +0.496229
+  cos(x3) : -0.005630
+  x1^2    : -0.001729
+  x2^2    : +0.000658
+  x3^2    : +0.198700
+
+--- lambda=0.001 ---
+[l1] epoch=   1 train_obj=5.446127 val_mse=5.657291
+[l1] epoch=1000 train_obj=1.303157 val_mse=1.653910
+[l1] epoch=2000 train_obj=0.280462 val_mse=0.357231
+[l1] epoch=3000 train_obj=0.031671 val_mse=0.037560
+[l1] epoch=4000 train_obj=0.006041 val_mse=0.003992
+[l1] epoch=5000 train_obj=0.005340 val_mse=0.002979
+[l1] epoch=6000 train_obj=0.005336 val_mse=0.002967
+[l1] epoch=7000 train_obj=0.005336 val_mse=0.002966
+[l1] epoch=8000 train_obj=0.005336 val_mse=0.002966
+[l1] epoch=9000 train_obj=0.005336 val_mse=0.002968
+[l1] epoch=10000 train_obj=0.005336 val_mse=0.002966
+bias: -0.4994695484638214
+weights:
+  x1      : -1.994533
+  x2      : -0.003138
+  x3      : +0.001148
+  cos(x1) : +0.000118
+  cos(x2) : +0.495414
+  cos(x3) : -0.000036
+  x1^2    : -0.001369
+  x2^2    : +0.000574
+  x3^2    : +0.199998
+
+--- lambda=0.01 ---
+[l1] epoch=   1 train_obj=20.831676 val_mse=18.612989
+[l1] epoch=1000 train_obj=1.855120 val_mse=2.279446
+[l1] epoch=2000 train_obj=0.507769 val_mse=0.620910
+[l1] epoch=3000 train_obj=0.103678 val_mse=0.098690
+[l1] epoch=4000 train_obj=0.040571 val_mse=0.013628
+[l1] epoch=5000 train_obj=0.034686 val_mse=0.006425
+[l1] epoch=6000 train_obj=0.031648 val_mse=0.004189
+[l1] epoch=7000 train_obj=0.029749 val_mse=0.003123
+[l1] epoch=8000 train_obj=0.029516 val_mse=0.003029
+[l1] epoch=9000 train_obj=0.029518 val_mse=0.003031
+[l1] epoch=10000 train_obj=0.029518 val_mse=0.003034
+bias: -0.49862250685691833
+weights:
+  x1      : -1.989711
+  x2      : -0.001378
+  x3      : -0.000204
+  cos(x1) : -0.000099
+  cos(x2) : +0.487286
+  cos(x3) : -0.000137
+  x1^2    : -0.000089
+  x2^2    : +0.000139
+  x3^2    : +0.199310
+
+--- lambda=0.1 ---
+[l1] epoch=   1 train_obj=6.061590 val_mse=6.322081
+[l1] epoch=1000 train_obj=1.660164 val_mse=1.905082
+[l1] epoch=2000 train_obj=0.574557 val_mse=0.469357
+[l1] epoch=3000 train_obj=0.293405 val_mse=0.073624
+[l1] epoch=4000 train_obj=0.264763 val_mse=0.016843
+[l1] epoch=5000 train_obj=0.264143 val_mse=0.012694
+[l1] epoch=6000 train_obj=0.264151 val_mse=0.012381
+[l1] epoch=7000 train_obj=0.264139 val_mse=0.012491
+[l1] epoch=8000 train_obj=0.264130 val_mse=0.012452
+[l1] epoch=9000 train_obj=0.264143 val_mse=0.012436
+[l1] epoch=10000 train_obj=0.264149 val_mse=0.012494
+bias: -0.48166123032569885/Users/zehuayin/ML/Machine-Learning/HW1/linear/start_code.py:169: RuntimeWarning: invalid value encountered in multiply
+  return float(r @ r / m + lambda_reg * theta @ theta)
+/Users/zehuayin/ML/Machine-Learning/HW1/linear/start_code.py:187: RuntimeWarning: invalid value encountered in multiply
+  return (2.0 / m) * X.T @ (X @ theta - y) + 2.0 * lambda_reg * theta
+/Users/zehuayin/ML/Machine-Learning/HW1/linear/start_code.py:242: RuntimeWarning: invalid value encountered in subtract
+  theta = theta - alpha * compute_regularized_square_loss_gradient(X, y, theta, lambda_reg)
+
+weights:
+  x1      : -1.942636
+  x2      : -0.000497
+  x3      : -0.000094
+  cos(x1) : +0.000161
+  cos(x2) : +0.398414
+  cos(x3) : -0.000227
+  x1^2    : +0.000029
+  x2^2    : -0.000432
+  x3^2    : +0.193480
+
+--- lambda=1 ---
+[l1] epoch=   1 train_obj=7.202688 val_mse=7.102903
+[l1] epoch=1000 train_obj=2.421177 val_mse=1.911772
+[l1] epoch=2000 train_obj=2.055673 val_mse=0.810347
+[l1] epoch=3000 train_obj=2.027037 val_mse=0.565202
+[l1] epoch=4000 train_obj=2.026697 val_mse=0.539503
+[l1] epoch=5000 train_obj=2.027060 val_mse=0.539179
+[l1] epoch=6000 train_obj=2.026712 val_mse=0.540312
+[l1] epoch=7000 train_obj=2.027184 val_mse=0.540997
+[l1] epoch=8000 train_obj=2.026800 val_mse=0.539459
+[l1] epoch=9000 train_obj=2.026747 val_mse=0.540478
+[l1] epoch=10000 train_obj=2.027034 val_mse=0.538858
+bias: -0.3067084848880768
+weights:
+  x1      : -1.462536
+  x2      : -0.000436
+  x3      : -0.000120
+  cos(x1) : +0.000014
+  cos(x2) : +0.000589
+  cos(x3) : -0.000083
+  x1^2    : +0.000183
+  x2^2    : -0.000378
+  x3^2    : +0.131398
+
+--- lambda=5 ---
+[l1] epoch=   1 train_obj=19.995358 val_mse=9.069660
+[l1] epoch=1000 train_obj=4.134580 val_mse=5.182410
+[l1] epoch=2000 train_obj=4.131422 val_mse=5.182174
+[l1] epoch=3000 train_obj=4.130663 val_mse=5.184856
+[l1] epoch=4000 train_obj=4.133335 val_mse=5.182925
+[l1] epoch=5000 train_obj=4.132217 val_mse=5.185763
+[l1] epoch=6000 train_obj=4.130894 val_mse=5.185795
+[l1] epoch=7000 train_obj=4.130721 val_mse=5.181294
+[l1] epoch=8000 train_obj=4.130306 val_mse=5.187755
+[l1] epoch=9000 train_obj=4.130835 val_mse=5.183501
+[l1] epoch=10000 train_obj=4.131647 val_mse=5.187418
+bias: 0.11842011660337448
+weights:
+  x1      : -0.000282
+  x2      : -0.000021
+  x3      : -0.000149
+  cos(x1) : -0.000054
+  cos(x2) : -0.000400
+  cos(x3) : +0.000095
+  x1^2    : +0.000059
+  x2^2    : +0.000338
+  x3^2    : +0.000156
+
+===== 2.5 GD hyper-param search on y2 =====
+ alpha | lam=0      | lam=0.0001 | lam=0.001  | lam=0.01   | lam=0.1   
+  0.01 |   0.126120 |   0.126742 |   0.132515 |   0.203822 |   1.001435
+  0.05 |   0.049343 |   0.049362 |   0.050485 |   0.118120 |   0.999442
+   0.1 |   0.049113 |   0.049106 |   0.050064 |   0.117887 |   0.999442
+   0.2 |        nan |        nan |        nan |        nan |        nan
+>> best alpha=0.1 lambda=0.0001 val_mse=0.049106 test_mse=0.042007
+
+===== 2.6 SGD batch size study on y2 =====
+batch_size=1    alpha=0.001    final_val_mse=1.226124
+batch_size=4    alpha=0.005    final_val_mse=0.199758
+batch_size=16   alpha=0.01     final_val_mse=0.077838
+batch_size=64   alpha=0.05     final_val_mse=0.049222
+batch_size=256  alpha=0.1      final_val_mse=0.049563
+SGD curves saved to sgd_batch_size.png
+
+===== y3 Multi-class Classification (Softmax + Model Selection) =====
+[Softmax] epoch=   1 train_loss=1.395396 val_loss=1.371342 val_acc=0.3350 best_epoch=1
+[Softmax] epoch= 100 train_loss=1.146269 val_loss=1.199885 val_acc=0.4850 best_epoch=100
+[Softmax] epoch= 200 train_loss=1.096668 val_loss=1.193599 val_acc=0.4900 best_epoch=194
+[Softmax] epoch= 300 train_loss=1.079517 val_loss=1.200222 val_acc=0.4800 best_epoch=194
+[Softmax] epoch= 400 train_loss=1.070720 val_loss=1.209872 val_acc=0.4600 best_epoch=194
+[Softmax] epoch= 500 train_loss=1.065741 val_loss=1.212892 val_acc=0.4650 best_epoch=194
+[Softmax] epoch= 600 train_loss=1.063605 val_loss=1.219043 val_acc=0.4600 best_epoch=194
+[Softmax] epoch= 700 train_loss=1.062625 val_loss=1.223774 val_acc=0.4700 best_epoch=194
+[Softmax] epoch= 800 train_loss=1.061296 val_loss=1.224578 val_acc=0.4700 best_epoch=194
+[Softmax] epoch= 900 train_loss=1.060867 val_loss=1.227340 val_acc=0.4650 best_epoch=194
+[Softmax] epoch=1000 train_loss=1.059938 val_loss=1.229880 val_acc=0.4600 best_epoch=194
+
+===== Best Model Selected =====
+criterion=val_loss, best_epoch=194, best_val_loss=1.191561
+class 0 weights: [ 0.15186085  0.10654175  0.5167477   0.02980147  0.21153152 -0.6341296
+ -0.08776391 -0.7890634  -0.03528145 -0.8274417   0.45694047  0.17283952
+  0.5028178  -0.11441252  0.33588412  0.25329596  0.51982063 -1.1290307
+  0.50007266  0.3572465   0.46427545 -0.5214948   0.30321267 -0.22363496
+  0.39198342 -0.55678904  0.8996275  -0.09642825  0.11732771  0.19777822
+ -0.32842717 -0.5629998   0.29947966 -1.1720811   0.28234392 -0.04779479]
+class 1 weights: [-0.29824385  0.13271236  0.00844541  0.5890825  -0.596741    0.26063356
+ -0.4732707   0.2361805  -0.86506593  0.08706044 -0.42336556  0.19498487
+  0.01821264  0.10392047 -0.38703737 -0.22505604 -0.2536928   0.28165248
+ -0.5852829   0.43329597  0.10964794  0.45778394 -0.18878558  0.07408158
+ -0.23153791  0.6493355  -0.40897167  0.19348346 -0.5282593   0.60203725
+ -0.23635817  0.12508927 -0.23463416  1.5893167  -0.13175197 -0.00712439]
+class 2 weights: [-0.28261408  0.2284162  -0.06454778 -0.01640944  0.64223206  0.05168034
+  0.8372715  -0.08959318  0.32631302 -0.63686717  0.32340387 -1.1194332
+  0.20453782  0.3057599   0.30562797 -0.69907504  0.44062084  0.14434089
+  0.3996951  -0.92390037  0.38943592 -0.1594608   0.34795898 -0.16254878
+  0.3043034  -0.30260068  0.04799582 -0.26997206  0.24682799 -0.9454452
+  0.20776607 -0.2922944   0.6781467  -0.7286477   0.53983706 -0.03864706]
+class 3 weights: [ 0.29489827 -0.07410431 -0.6105029  -0.57258224 -0.36844867  0.31341648
+ -0.6133881   0.95413893  0.6178249   1.4086014  -0.43195492  0.77915835
+ -0.63730955 -0.11226776 -0.09833881  0.5267102  -0.7358772   0.44377127
+ -0.18391767  0.18937743 -1.0875139   0.3829688  -0.42381093  0.477462
+ -0.5691742  -0.04105143 -0.27676454  0.10740782  0.4554325   0.15931556
+  0.33626035  0.3755692  -0.7281137   0.09223038 -0.6200272   0.20554923]
+[Test(best model)] loss=1.280633, acc=0.3900
