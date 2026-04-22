@@ -15,3 +15,20 @@ n_train=300  test_mse=1.0255
 n_train=500  test_mse=1.0649
 n_train=800  test_mse=0.9541
 n_train=1000 test_mse=0.8680
+
+===== y2 数据量 x k 值 （cosine）=====
+n_train  k=1   k=5   k=10  k=30 
+50       2.388 1.334 1.391 1.924
+100      2.113 1.110 1.043 1.436
+300      1.890 1.060 1.061 1.201
+500      1.890 0.987 0.897 1.108
+800      1.819 0.873 0.881 1.028
+1000     1.707 0.807 0.803 0.979
+
+===== y3 数据量影响（k=10, euclidean）=====
+n_train=50   test_acc=0.320
+n_train=100  test_acc=0.360
+n_train=300  test_acc=0.340
+n_train=500  test_acc=0.350
+n_train=800  test_acc=0.350
+n_train=1000 test_acc=0.330
