@@ -33,11 +33,7 @@ def split_data(X, y1, y2, y3, split_size=[0.8, 0.2], shuffle=False, random_seed=
     
     # TODO 2.1.1 （about 7 lines)
     cuts = np.cumsum([int(round(r * num_instances)) for r in split_size[:-1]])
-    X_list = np.split(X, cuts)
-    y1_list = np.split(y1, cuts)
-    y2_list = np.split(y2, cuts)
-    y3_list = np.split(y3, cuts)
-    return X_list, y1_list, y2_list, y3_list
+    return np.split(X, cuts), np.split(y1, cuts), np.split(y2, cuts), np.split(y3, cuts)
 
 
 def feature_normalization(train, val, test):
@@ -54,11 +50,11 @@ def feature_normalization(train, val, test):
 
     """
     # TODO 2.1.2 (about 8 lines)
-    mn = train.min(axis=0)
-    mx = train.max(axis=0)
-    rng = mx - mn
-    rng[rng == 0] = 1.0  # 避免除零
-    return (train - mn) / rng, (val - mn) / rng, (test - mn) / rng
+    lo = train.min(axis=0)
+    hi = train.max(axis=0)
+    span = hi - lo
+    span[span == 0] = 1.0
+    return (train - lo) / span, (val - lo) / span, (test - lo) / span
 
 
 def build_basis_features(X_raw):
@@ -91,13 +87,11 @@ def build_basis_features(X_raw):
     x3 = X_raw[:, 2]
 
     # TODO 2.2 基函数 （3~10行）
-    Phi = np.stack([x1, x2, x3,
-                    np.cos(x1), np.cos(x2), np.cos(x3),
-                    x1 ** 2, x2 ** 2, x3 ** 2], axis=1)
-    feature_names = ["x1", "x2", "x3",
-                     "cos(x1)", "cos(x2)", "cos(x3)",
-                     "x1^2", "x2^2", "x3^2"]
-    return Phi, feature_names
+    Phi = np.column_stack([x1, x2, x3,
+                           np.cos(x1), np.cos(x2), np.cos(x3),
+                           x1 * x1, x2 * x2, x3 * x3])
+    names = ["x1", "x2", "x3", "cos(x1)", "cos(x2)", "cos(x3)", "x1^2", "x2^2", "x3^2"]
+    return Phi, names
 
 
 def train_linear_with_regularization(
@@ -171,8 +165,8 @@ def compute_regularized_square_loss(X, y, theta, lambda_reg):
     """
     # TODO 2.3.2 (2~7 lines)
     m = X.shape[0]
-    residual = X @ theta - y
-    return float((residual @ residual) / m + lambda_reg * (theta @ theta))
+    r = X @ theta - y
+    return float(r @ r / m + lambda_reg * theta @ theta)
 
 
 def compute_regularized_square_loss_gradient(X, y, theta, lambda_reg):
@@ -190,7 +184,7 @@ def compute_regularized_square_loss_gradient(X, y, theta, lambda_reg):
     """
     # TODO 2.3.4 (2~7 lines)
     m = X.shape[0]
-    return 2.0 / m * X.T @ (X @ theta - y) + 2.0 * lambda_reg * theta
+    return (2.0 / m) * X.T @ (X @ theta - y) + 2.0 * lambda_reg * theta
 
 
 def grad_checker(X, y, theta, lambda_reg, epsilon=0.01, tolerance=1e-4):
@@ -241,16 +235,15 @@ def grad_descent(X, y, lambda_reg, alpha=0.1, num_iter=1000, check_gradient=Fals
     theta_hist = np.zeros((num_iter + 1, num_features))  # Initialize theta_hist
     theta_hist[0] = theta = np.zeros(num_features)  # Initialize theta
     loss_hist = np.zeros(num_iter)  # Initialize loss_hist
-    for i in range(num_iter):  
+    for i in range(num_iter):
         # TODO 2.4.2 (3~5 lines)
-        if check_gradient:
-            assert grad_checker(X, y, theta, lambda_reg), f"grad check failed at iter {i}"
-        g = compute_regularized_square_loss_gradient(X, y, theta, lambda_reg)
-        theta = theta - alpha * g
+        if check_gradient and not grad_checker(X, y, theta, lambda_reg):
+            raise RuntimeError(f"grad check failed at iter {i}")
+        theta = theta - alpha * compute_regularized_square_loss_gradient(X, y, theta, lambda_reg)
         loss_hist[i] = compute_regularized_square_loss(X, y, theta, lambda_reg)
         theta_hist[i + 1] = theta
 
-    return theta_hist,loss_hist
+    return theta_hist, loss_hist
 
 
 
@@ -281,18 +274,20 @@ def stochastic_grad_descent(X_train, y_train, X_val, y_val, lambda_reg, alpha=0.
 
     # TODO 2.6.2
     rng = np.random.RandomState(0)
+    n_val = X_val.shape[0]
     for i in range(num_iter):
         idx = rng.randint(0, num_instances, size=batch_size)
         xb, yb = X_train[idx], y_train[idx]
-        g = 2.0 / batch_size * xb.T @ (xb @ theta - yb) + 2.0 * lambda_reg * theta
+        # mini-batch 梯度 = 2/|B| X_B^T (X_B θ - y_B) + 2λθ
+        g = (2.0 / batch_size) * xb.T @ (xb @ theta - yb) + 2.0 * lambda_reg * theta
         theta = theta - alpha * g
         loss_hist[i] = compute_regularized_square_loss(xb, yb, theta, lambda_reg)
-        # 验证集上用纯 MSE（不含正则）反映收敛
-        res_val = X_val @ theta - y_val
-        validation_hist[i] = float((res_val @ res_val) / X_val.shape[0])
+        # 验证集只看纯 MSE，不含正则
+        rv = X_val @ theta - y_val
+        validation_hist[i] = float(rv @ rv / n_val)
         theta_hist[i + 1] = theta
 
-    return theta_hist,loss_hist,validation_hist
+    return theta_hist, loss_hist, validation_hist
 
 
 def main():
@@ -359,45 +354,39 @@ def main():
     
     # TODO 2.5 (调用grad_descent函数，调整超参数，观察实验结果)
     print("\n===== 2.5 GD hyper-param search on y2 =====")
-    # 注意：alpha 过大（>=0.3）会让 GD 在归一化后的 36 维空间中发散为 NaN，
-    # 故只搜索能稳定收敛的区间；lambda 覆盖 0 / 1e-4 / 1e-3 / 1e-2 / 1e-1
+    # alpha>=0.3 在归一化后的 36 维空间会发散成 NaN，这里只跑能稳定收敛的档
     alphas = [0.01, 0.05, 0.1, 0.2]
     lambdas = [0.0, 1e-4, 1e-3, 1e-2, 1e-1]
-    num_iter = 2000
     best = {"val_mse": float("inf")}
     print(f"{'alpha':>6} | " + " | ".join(f"lam={lam:<6g}" for lam in lambdas))
     for a in alphas:
         row = [f"{a:>6g}"]
         for lam in lambdas:
-            theta_hist, _ = grad_descent(X_train, y2_train,
-                                         lambda_reg=lam, alpha=a, num_iter=num_iter)
-            theta = theta_hist[-1]
-            val_mse = float(np.mean((X_val @ theta - y2_val) ** 2))
-            row.append(f"{val_mse:10.6f}")
-            if np.isfinite(val_mse) and val_mse < best["val_mse"]:
-                best = {"val_mse": val_mse, "alpha": a, "lambda": lam, "theta": theta}
+            th_hist, _ = grad_descent(X_train, y2_train, lambda_reg=lam, alpha=a, num_iter=2000)
+            th = th_hist[-1]
+            v = float(np.mean((X_val @ th - y2_val) ** 2))
+            row.append(f"{v:10.6f}")
+            if np.isfinite(v) and v < best["val_mse"]:
+                best = {"val_mse": v, "alpha": a, "lambda": lam, "theta": th}
         print(" | ".join(row))
-    test_mse = float(np.mean((X_test @ best["theta"] - y2_test) ** 2))
+    t_mse = float(np.mean((X_test @ best["theta"] - y2_test) ** 2))
     print(f">> best alpha={best['alpha']} lambda={best['lambda']} "
-          f"val_mse={best['val_mse']:.6f} test_mse={test_mse:.6f}")
+          f"val_mse={best['val_mse']:.6f} test_mse={t_mse:.6f}")
 
     # TODO 2.6.3
     print("\n===== 2.6 SGD batch size study on y2 =====")
-    # 小 batch 噪声更大，步长需要更小；大 batch 近似全批 GD，可以用更大的步长
-    best_lambda = 0.0
-    num_iter_sgd = 3000
-    bs_alpha_pairs = [(1, 1e-3), (4, 5e-3), (16, 1e-2), (64, 5e-2), (256, 0.1)]
+    # 小 batch 噪声大 -> 配小步长；大 batch 接近全批 GD -> 能用大步长
+    bs_alpha = [(1, 1e-3), (4, 5e-3), (16, 1e-2), (64, 5e-2), (256, 0.1)]
     plt.figure(figsize=(8, 5))
-    for bs, a in bs_alpha_pairs:
-        _, _, val_hist = stochastic_grad_descent(
+    for bs, a in bs_alpha:
+        _, _, v_hist = stochastic_grad_descent(
             X_train, y2_train, X_val, y2_val,
-            lambda_reg=best_lambda, alpha=a,
-            num_iter=num_iter_sgd, batch_size=bs)
-        plt.plot(val_hist, label=f"bs={bs} (α={a:g})")
-        print(f"batch_size={bs:<4d} alpha={a:<8g} final_val_mse={val_hist[-1]:.6f}")
-    plt.xlabel("iter"); plt.ylabel("val MSE"); plt.legend()
+            lambda_reg=0.0, alpha=a, num_iter=3000, batch_size=bs)
+        plt.plot(v_hist, label=f"bs={bs} (α={a:g})")
+        print(f"batch_size={bs:<4d} alpha={a:<8g} final_val_mse={v_hist[-1]:.6f}")
+    plt.xlabel("iter"); plt.ylabel("val MSE"); plt.yscale("log")
+    plt.legend(); plt.grid(True, alpha=0.3)
     plt.title("SGD: batch size vs val MSE (y2)")
-    plt.yscale("log"); plt.grid(True, alpha=0.3)
     plt.savefig("sgd_batch_size.png", dpi=120, bbox_inches="tight"); plt.close()
     print("SGD curves saved to sgd_batch_size.png")
 

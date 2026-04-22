@@ -57,18 +57,20 @@ def linear_svm_subgrad_descent(X, y, alpha=0.05, lambda_reg=0.0001, num_iter=600
     loss_hist = np.zeros(num_iter)  # Initialize loss_hist
 
     # TODO 3.5.1
+    # mini-batch 次梯度：对 batch 内满足 y_i wᵀx_i < 1 的样本，hinge 部分贡献 -y_i x_i
     rng = np.random.RandomState(0)
     for t in trange(num_iter):
         idx = rng.choice(num_instances, size=batch_size, replace=False)
         xb, yb = X[idx], y[idx]
-        margin = yb * (xb @ theta)           # (bs,)
-        active = margin < 1                  # 样本进入 hinge
-        # hinge 部分的次梯度: -y_i * x_i  (仅当 active)
-        hinge_grad = -(yb[active, None] * xb[active]).sum(axis=0) / batch_size
-        grad = lambda_reg * theta + hinge_grad
-        theta = theta - alpha * grad
+        mask = (yb * (xb @ theta)) < 1
+        if mask.any():
+            hinge_g = -(yb[mask, None] * xb[mask]).sum(axis=0) / batch_size
+        else:
+            hinge_g = 0.0
+        theta = theta - alpha * (lambda_reg * theta + hinge_g)
         theta_hist[t + 1] = theta
-        hinge = np.maximum(0.0, 1 - yb * (xb @ theta)).mean()
+        # 记录 batch 上的正则 + hinge，方便监控收敛
+        hinge = np.maximum(0.0, 1.0 - yb * (xb @ theta)).mean()
         loss_hist[t] = 0.5 * lambda_reg * (theta @ theta) + hinge
 
     return theta_hist, loss_hist
@@ -98,39 +100,33 @@ def kernel_svm_subgrad_descent(X, y, alpha=0.1, lambda_reg=0.0001, num_iter=6000
     loss_hist = np.zeros((num_iter + 1,))
 
     # TODO 3.5.2
-    # 预先计算核矩阵 K[i,j] = k(x_i, x_j)
+    # 预先算好核矩阵 K，后面只用 K[idx] @ theta 做小量计算
     if kernel == "linear":
         K = X @ X.T
     elif kernel == "rbf":
         sq = np.sum(X ** 2, axis=1)
-        K = np.exp(-gamma * (sq[:, None] + sq[None, :] - 2 * X @ X.T))
+        K = np.exp(-gamma * (sq[:, None] + sq[None, :] - 2.0 * X @ X.T))
     else:
         raise ValueError(f"unknown kernel: {kernel}")
 
     rng = np.random.RandomState(0)
     for t in trange(num_iter):
         idx = rng.choice(num_instances, size=batch_size, replace=False)
-        # 自适应步长 η_t = 1 / (λ * (t+1))，Pegasos 的经典选择
-        eta_t = 1.0 / (lambda_reg * (t + 1))
+        # Pegasos 经典步长 η_t = 1 / (λ t)
+        eta = 1.0 / (lambda_reg * (t + 1))
 
-        # 判断 batch 内哪些样本违反 margin
-        f_batch = K[idx] @ theta                     # (bs,)
-        active = (y[idx] * f_batch) < 1              # (bs,)
+        f_b = K[idx] @ theta
+        mask = (y[idx] * f_b) < 1
 
-        # 稀疏次梯度更新：
-        # 1) 正则项梯度 λw 对应 λ·Σ_j θ_j Φ(x_j)，在对偶坐标里等价于 θ ← (1-η_tλ) θ
-        # 2) hinge 项梯度 -(1/|B|) Σ_{i∈active} y_i Φ(x_i)
-        #    对偶坐标下只修改 θ_{idx[i]} 自己，得 θ_{idx[i]} += (η_t/|B|) y_i
-        theta = (1.0 - eta_t * lambda_reg) * theta
-        if active.any():
-            np.add.at(theta, idx[active],
-                      (eta_t / batch_size) * y[idx][active])
+        # 正则项梯度 λw 对应对偶坐标上的整体收缩 (1-ηλ)θ
+        theta *= (1.0 - eta * lambda_reg)
+        # hinge 项 -(1/|B|) Σ y_i Φ(x_i)：对偶坐标下只改 batch 内违反 margin 的坐标
+        if mask.any():
+            np.add.at(theta, idx[mask], (eta / batch_size) * y[idx][mask])
 
         theta_hist[t + 1] = theta
-
-        # 记录 batch 上的 hinge 作为训练进度
-        hinge = np.maximum(0.0, 1.0 - y[idx] * (K[idx] @ theta)).mean()
-        loss_hist[t + 1] = hinge  # 正则项随训练监控时用不上，省略
+        # 记录 batch hinge，方便监控
+        loss_hist[t + 1] = np.maximum(0.0, 1.0 - y[idx] * (K[idx] @ theta)).mean()
 
     return theta_hist, loss_hist, K
 
@@ -174,34 +170,30 @@ def main():
     # TODO
     print("\n===== Linear SVM (subgrad) =====")
     theta_hist, loss_hist = linear_svm_subgrad_descent(
-        X_train_vect, y_train,
-        alpha=0.05, lambda_reg=1e-4, num_iter=20000, batch_size=32)
+        X_train_vect, y_train, alpha=0.05, lambda_reg=1e-4,
+        num_iter=20000, batch_size=32)
     w_lin = theta_hist[-1]
-    pred_val = np.sign(X_val_vect @ w_lin)
-    pred_val[pred_val == 0] = 1
-    acc = accuracy_score(y_val, pred_val)
-    f1 = f1_score_binary(y_val, pred_val, positive=1)
-    cm, labels = confusion_matrix_binary(y_val, pred_val)
-    print(f"[Linear] val_acc={acc:.4f} f1={f1:.4f}")
-    print(f"confusion matrix (rows=true {labels}, cols=pred {labels}):\n{cm}")
+    pred_lin = np.sign(X_val_vect @ w_lin)
+    pred_lin[pred_lin == 0] = 1
+    acc_lin = accuracy_score(y_val, pred_lin)
+    f1_lin = f1_score_binary(y_val, pred_lin, positive=1)
+    cm_lin, labels = confusion_matrix_binary(y_val, pred_lin)
+    print(f"[Linear] val_acc={acc_lin:.4f} f1={f1_lin:.4f}")
+    print(f"confusion matrix (rows=true {labels}, cols=pred {labels}):\n{cm_lin}")
 
     plt.figure()
     plt.plot(loss_hist)
-    plt.xlabel("iter"); plt.ylabel("batch loss"); plt.title("Linear SVM subgrad loss")
+    plt.xlabel("iter"); plt.ylabel("batch loss")
+    plt.title("Linear SVM subgrad loss")
     plt.savefig("svm_linear_loss.png", dpi=120); plt.close()
 
     # Kernel SVM的随机次梯度下降训练
     # TODO
     print("\n===== Kernel SVM (subgrad) =====")
-    # 说明：TF-IDF 向量维度 ~5000 且非常稀疏，向量对之间的欧氏距离平方大多在 1~2 级别。
-    # 对 RBF 核 exp(-γ||x-x'||²)，γ 若≥0.1 核矩阵会接近对角阵，模型退化为常数预测。
-    # 因此这里把 γ 搜得更小（1e-3 ~ 1e-1），并额外对比 linear kernel 作为参照。
-    # 同时把迭代数提高到 4000 保证对偶参数收敛。
-    sq_train = np.sum(X_train_vect ** 2, axis=1)
-    sq_val = np.sum(X_val_vect ** 2, axis=1)
-
-    best = {"acc": -1.0, "pred": None}
-    kernel_grid = [
+    # TF-IDF 维度高且稀疏，RBF 的 γ 需要调得很小。顺便跟 linear 核对照
+    sq_tr = np.sum(X_train_vect ** 2, axis=1)
+    sq_va = np.sum(X_val_vect ** 2, axis=1)
+    grid = [
         ("linear", None, 1e-4),
         ("linear", None, 1e-3),
         ("rbf",    1e-3, 1e-4),
@@ -209,43 +201,45 @@ def main():
         ("rbf",    5e-2, 1e-4),
         ("rbf",    1e-1, 1e-4),
     ]
-    for kernel, gamma, lam in kernel_grid:
-        alpha_hist, loss_hist_k, _ = kernel_svm_subgrad_descent(
-            X_train_vect, y_train,
-            alpha=0.5, lambda_reg=lam, num_iter=4000, batch_size=32,
+    best = {"acc": -1.0}
+    for kernel, gamma, lam in grid:
+        th_hist, _, _ = kernel_svm_subgrad_descent(
+            X_train_vect, y_train, alpha=0.5, lambda_reg=lam,
+            num_iter=4000, batch_size=32,
             kernel=kernel, gamma=gamma if gamma is not None else 0.0)
-        alpha_final = alpha_hist[-1]
+        th = th_hist[-1]
         if kernel == "linear":
-            K_val = X_val_vect @ X_train_vect.T
+            K_va = X_val_vect @ X_train_vect.T
         else:
-            K_val = np.exp(-gamma * (sq_val[:, None] + sq_train[None, :]
-                                     - 2 * X_val_vect @ X_train_vect.T))
-        pred = np.sign(K_val @ alpha_final)
+            K_va = np.exp(-gamma * (sq_va[:, None] + sq_tr[None, :]
+                                    - 2.0 * X_val_vect @ X_train_vect.T))
+        pred = np.sign(K_va @ th)
         pred[pred == 0] = 1
         acc_k = accuracy_score(y_val, pred)
-        f1_k_cur = f1_score_binary(y_val, pred, positive=1)
-        tag = f"{kernel}" + (f"(γ={gamma})" if gamma is not None else "")
-        print(f"kernel={tag:<14s} lambda={lam:<6g} val_acc={acc_k:.4f} f1={f1_k_cur:.4f}")
+        f1_k = f1_score_binary(y_val, pred, positive=1)
+        tag = kernel + (f"(γ={gamma})" if gamma is not None else "")
+        print(f"kernel={tag:<14s} lambda={lam:<6g} val_acc={acc_k:.4f} f1={f1_k:.4f}")
         if acc_k > best["acc"]:
             best = {"acc": acc_k, "kernel": kernel, "gamma": gamma,
-                    "lambda": lam, "alpha": alpha_final, "pred": pred}
-    pred = best["pred"]
-    f1_k = f1_score_binary(y_val, pred, positive=1)
-    cm_k, _ = confusion_matrix_binary(y_val, pred)
-    tag = f"{best['kernel']}" + (f"(γ={best['gamma']})" if best['gamma'] is not None else "")
-    print(f"[Kernel-best] {tag} lambda={best['lambda']} "
-          f"val_acc={best['acc']:.4f} f1={f1_k:.4f}")
-    print(f"confusion matrix:\n{cm_k}")
+                    "lambda": lam, "pred": pred}
 
     # 计算SVM模型在验证集上的准确率，F1-Score以及混淆矩阵
     # TODO
-    # —— 选择两个模型中表现更好者作为最终模型 ——
-    if acc >= best["acc"]:
+    pred_k = best["pred"]
+    f1_ker = f1_score_binary(y_val, pred_k, positive=1)
+    cm_ker, _ = confusion_matrix_binary(y_val, pred_k)
+    tag = best["kernel"] + (f"(γ={best['gamma']})" if best["gamma"] is not None else "")
+    print(f"[Kernel-best] {tag} lambda={best['lambda']} "
+          f"val_acc={best['acc']:.4f} f1={f1_ker:.4f}")
+    print(f"confusion matrix:\n{cm_ker}")
+
+    # 选准确率更高的作为最终模型
+    if acc_lin >= best["acc"]:
         print("\n>> Final model: Linear SVM")
-        print(f"acc={acc:.4f}, f1={f1:.4f}, cm=\n{cm}")
+        print(f"acc={acc_lin:.4f}, f1={f1_lin:.4f}, cm=\n{cm_lin}")
     else:
         print("\n>> Final model: Kernel SVM (RBF)")
-        print(f"acc={best['acc']:.4f}, f1={f1_k:.4f}, cm=\n{cm_k}")
+        print(f"acc={best['acc']:.4f}, f1={f1_ker:.4f}, cm=\n{cm_ker}")
 
 
 if __name__ == '__main__':
