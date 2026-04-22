@@ -32,7 +32,13 @@ def split_data(X, y1, y2, y3, split_size=[0.8, 0.2], shuffle=False, random_seed=
         y3 = y3[indices]
     
     # TODO 2.1.1 （about 7 lines)
-    
+    cuts = np.cumsum([int(round(r * num_instances)) for r in split_size[:-1]])
+    X_list = np.split(X, cuts)
+    y1_list = np.split(y1, cuts)
+    y2_list = np.split(y2, cuts)
+    y3_list = np.split(y3, cuts)
+    return X_list, y1_list, y2_list, y3_list
+
 
 def feature_normalization(train, val, test):
     """将训练集中的所有特征值映射至[0,1]，对测试集上的每个特征也需要使用相同的仿射变换
@@ -48,12 +54,17 @@ def feature_normalization(train, val, test):
 
     """
     # TODO 2.1.2 (about 8 lines)
+    mn = train.min(axis=0)
+    mx = train.max(axis=0)
+    rng = mx - mn
+    rng[rng == 0] = 1.0  # 避免除零
+    return (train - mn) / rng, (val - mn) / rng, (test - mn) / rng
 
 
 def build_basis_features(X_raw):
     """
     只使用 x1, x2, x3 构造9维基函数:
-    [x1, x2, x3, sin(x1), sin(x2), sin(x3), x1^2, x2^2, x3^2]
+    [x1, x2, x3, cos(x1), cos(x2), cos(x3), x1^2, x2^2, x3^2]
     X_raw: shape (n, num_features), 假设前3列是 x1,x2,x3
 
     Returns
@@ -64,9 +75,9 @@ def build_basis_features(X_raw):
         1) x1
         2) x2
         3) x3
-        4) sin(x1)
-        5) sin(x2)
-        6) sin(x3)
+        4) cos(x1)
+        5) cos(x2)
+        6) cos(x3)
         7) x1^2
         8) x2^2
         9) x3^2
@@ -80,6 +91,13 @@ def build_basis_features(X_raw):
     x3 = X_raw[:, 2]
 
     # TODO 2.2 基函数 （3~10行）
+    Phi = np.stack([x1, x2, x3,
+                    np.cos(x1), np.cos(x2), np.cos(x3),
+                    x1 ** 2, x2 ** 2, x3 ** 2], axis=1)
+    feature_names = ["x1", "x2", "x3",
+                     "cos(x1)", "cos(x2)", "cos(x3)",
+                     "x1^2", "x2^2", "x3^2"]
+    return Phi, feature_names
 
 
 def train_linear_with_regularization(
@@ -152,7 +170,9 @@ def compute_regularized_square_loss(X, y, theta, lambda_reg):
         loss - 损失函数，标量
     """
     # TODO 2.3.2 (2~7 lines)
-
+    m = X.shape[0]
+    residual = X @ theta - y
+    return float((residual @ residual) / m + lambda_reg * (theta @ theta))
 
 
 def compute_regularized_square_loss_gradient(X, y, theta, lambda_reg):
@@ -169,6 +189,8 @@ def compute_regularized_square_loss_gradient(X, y, theta, lambda_reg):
         grad - 梯度向量，数组大小（num_features）
     """
     # TODO 2.3.4 (2~7 lines)
+    m = X.shape[0]
+    return 2.0 / m * X.T @ (X @ theta - y) + 2.0 * lambda_reg * theta
 
 
 def grad_checker(X, y, theta, lambda_reg, epsilon=0.01, tolerance=1e-4):
@@ -221,7 +243,12 @@ def grad_descent(X, y, lambda_reg, alpha=0.1, num_iter=1000, check_gradient=Fals
     loss_hist = np.zeros(num_iter)  # Initialize loss_hist
     for i in range(num_iter):  
         # TODO 2.4.2 (3~5 lines)
-        pass
+        if check_gradient:
+            assert grad_checker(X, y, theta, lambda_reg), f"grad check failed at iter {i}"
+        g = compute_regularized_square_loss_gradient(X, y, theta, lambda_reg)
+        theta = theta - alpha * g
+        loss_hist[i] = compute_regularized_square_loss(X, y, theta, lambda_reg)
+        theta_hist[i + 1] = theta
 
     return theta_hist,loss_hist
 
@@ -253,6 +280,17 @@ def stochastic_grad_descent(X_train, y_train, X_val, y_val, lambda_reg, alpha=0.
     validation_hist = np.zeros(num_iter)  # Initialize validation_hist
 
     # TODO 2.6.2
+    rng = np.random.RandomState(0)
+    for i in range(num_iter):
+        idx = rng.randint(0, num_instances, size=batch_size)
+        xb, yb = X_train[idx], y_train[idx]
+        g = 2.0 / batch_size * xb.T @ (xb @ theta - yb) + 2.0 * lambda_reg * theta
+        theta = theta - alpha * g
+        loss_hist[i] = compute_regularized_square_loss(xb, yb, theta, lambda_reg)
+        # 验证集上用纯 MSE（不含正则）反映收敛
+        res_val = X_val @ theta - y_val
+        validation_hist[i] = float((res_val @ res_val) / X_val.shape[0])
+        theta_hist[i + 1] = theta
 
     return theta_hist,loss_hist,validation_hist
 
@@ -320,9 +358,48 @@ def main():
             print(f"  {n:8s}: {w:+.6f}")
     
     # TODO 2.5 (调用grad_descent函数，调整超参数，观察实验结果)
-    
+    print("\n===== 2.5 GD hyper-param search on y2 =====")
+    # 注意：alpha 过大（>=0.3）会让 GD 在归一化后的 36 维空间中发散为 NaN，
+    # 故只搜索能稳定收敛的区间；lambda 覆盖 0 / 1e-4 / 1e-3 / 1e-2 / 1e-1
+    alphas = [0.01, 0.05, 0.1, 0.2]
+    lambdas = [0.0, 1e-4, 1e-3, 1e-2, 1e-1]
+    num_iter = 2000
+    best = {"val_mse": float("inf")}
+    print(f"{'alpha':>6} | " + " | ".join(f"lam={lam:<6g}" for lam in lambdas))
+    for a in alphas:
+        row = [f"{a:>6g}"]
+        for lam in lambdas:
+            theta_hist, _ = grad_descent(X_train, y2_train,
+                                         lambda_reg=lam, alpha=a, num_iter=num_iter)
+            theta = theta_hist[-1]
+            val_mse = float(np.mean((X_val @ theta - y2_val) ** 2))
+            row.append(f"{val_mse:10.6f}")
+            if np.isfinite(val_mse) and val_mse < best["val_mse"]:
+                best = {"val_mse": val_mse, "alpha": a, "lambda": lam, "theta": theta}
+        print(" | ".join(row))
+    test_mse = float(np.mean((X_test @ best["theta"] - y2_test) ** 2))
+    print(f">> best alpha={best['alpha']} lambda={best['lambda']} "
+          f"val_mse={best['val_mse']:.6f} test_mse={test_mse:.6f}")
 
     # TODO 2.6.3
+    print("\n===== 2.6 SGD batch size study on y2 =====")
+    # 小 batch 噪声更大，步长需要更小；大 batch 近似全批 GD，可以用更大的步长
+    best_lambda = 0.0
+    num_iter_sgd = 3000
+    bs_alpha_pairs = [(1, 1e-3), (4, 5e-3), (16, 1e-2), (64, 5e-2), (256, 0.1)]
+    plt.figure(figsize=(8, 5))
+    for bs, a in bs_alpha_pairs:
+        _, _, val_hist = stochastic_grad_descent(
+            X_train, y2_train, X_val, y2_val,
+            lambda_reg=best_lambda, alpha=a,
+            num_iter=num_iter_sgd, batch_size=bs)
+        plt.plot(val_hist, label=f"bs={bs} (α={a:g})")
+        print(f"batch_size={bs:<4d} alpha={a:<8g} final_val_mse={val_hist[-1]:.6f}")
+    plt.xlabel("iter"); plt.ylabel("val MSE"); plt.legend()
+    plt.title("SGD: batch size vs val MSE (y2)")
+    plt.yscale("log"); plt.grid(True, alpha=0.3)
+    plt.savefig("sgd_batch_size.png", dpi=120, bbox_inches="tight"); plt.close()
+    print("SGD curves saved to sgd_batch_size.png")
 
     
     # 2.7 分类问题

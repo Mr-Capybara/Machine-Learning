@@ -1,0 +1,47 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# ===== 虚拟环境 =====
+.venv/
+venv/
+env/
+ENV/
+
+# ===== 实验运行产物（可从代码重新生成）=====
+# 训练日志
+*.log
+# 模型权重 / 检查点
+*.pt
+*.pth
+*.ckpt
+*.pkl
+*.joblib
+*.npy
+*.npz
+
+# 作业 HW1 实验生成的图片（可由 start_code.py 重新产出）
+HW1/linear/sgd_batch_size.png
+HW1/svm/svm_linear_loss.png
+
+# ===== 操作系统 / IDE =====
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ===== Jupyter =====
+*.ipynb_checkpoints
